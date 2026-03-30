@@ -49,16 +49,14 @@ allowed_origins = [
 
 # Add production origins
 if os.getenv("ENVIRONMENT") == "production":
-    # Add your Vercel frontend URL here
-    frontend_url = os.getenv("FRONTEND_URL", "https://your-app.vercel.app")
-    allowed_origins = [frontend_url, "https://*.vercel.app"]
+    frontend_url = os.getenv("FRONTEND_URL", "")
+    allowed_origins = [frontend_url] if frontend_url else ["*"]
 else:
-    # Development origins
-    allowed_origins.extend(["*"])  # Allow all in development
+    allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if os.getenv("ENVIRONMENT") != "production" else allowed_origins,
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
