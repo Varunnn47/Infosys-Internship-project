@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "backend/app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb"
+      }
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/app.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/$1"
+    },
+    {
+      "src": "/",
+      "dest": "frontend/index.html"
+    }
+  ],
+  "env": {
+    "GROQ_API_KEY": "@groq_api_key",
+    "SECRET_KEY": "@secret_key", 
+    "MONGO_URL": "@mongo_url",
+    "ENVIRONMENT": "production",
+    "FRONTEND_URL": "https://your-app.vercel.app"
+  },
+  "functions": {
+    "backend/app.py": {
+      "maxDuration": 30
+    }
+  }
+}

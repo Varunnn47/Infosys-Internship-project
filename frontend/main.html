@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResearchAI – Paper Summarizer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar">
+    <div class="nav-inner">
+        <div class="brand">🔬 <span>ResearchAI</span></div>
+        <div class="nav-right">
+            <a href="#" class="nav-link active" id="nav-analyze" onclick="showTab('analyze')">Analyze</a>
+            <a href="#" class="nav-link" id="nav-history" onclick="showTab('history')">History</a>
+            <a href="#" class="nav-link" id="nav-compare" onclick="showTab('compare')">Compare</a>
+            <div class="user-area">
+                <span id="usernameDisplay" class="username"></span>
+                <button id="logoutBtn" class="logout-btn">Logout</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<main class="container">
+
+    <!-- ── ANALYZE TAB ── -->
+    <div id="tab-analyze" class="tab-content active">
+
+        <section class="hero">
+            <h1 class="hero-title">AI Research Paper Summarizer</h1>
+            <p class="hero-sub">Extract key insights from any research paper in seconds</p>
+            <div class="hero-badges">
+                <span class="badge">⚡ Fast</span>
+                <span class="badge">🎯 Accurate</span>
+                <span class="badge">🤖 Groq</span>
+                <span class="badge">🔒 Secure</span>
+            </div>
+        </section>
+
+        <section class="upload-section" id="upload">
+            <h2 class="section-title">Upload Your Paper</h2>
+            <div class="upload-card">
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-icon">📄</div>
+                    <p class="drop-text" id="dropText">Drag & Drop PDF here</p>
+                    <p class="drop-or">or</p>
+                    <label for="fileInput" class="choose-btn">Choose File</label>
+                    <input type="file" id="fileInput" accept=".pdf,.docx" hidden>
+                    <p class="drop-hint">PDF or DOCX · Max 10MB</p>
+                </div>
+
+                <div class="divider"><span>OR</span></div>
+
+                <div class="text-area-wrap">
+                    <label class="field-label">Paste Research Paper Text</label>
+                    <textarea id="textInput" rows="10" placeholder="Paste your research paper text here..."></textarea>
+                    <span class="char-count"><span id="charCount">0</span> characters</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div id="progressWrap" class="progress-wrap" style="display:none">
+                    <div class="progress-steps">
+                        <div class="p-step" id="ps1">📄 Extracting</div>
+                        <div class="p-step" id="ps2">✂️ Chunking</div>
+                        <div class="p-step" id="ps3">🧠 Embedding</div>
+                        <div class="p-step" id="ps4">✨ Summarizing</div>
+                        <div class="p-step" id="ps5">💡 Insights</div>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+                </div>
+
+                <div class="action-row">
+                    <button id="analyzeBtn" class="analyze-btn">✨ Generate Summary</button>
+                    <button id="clearBtn" class="clear-btn" style="display:none">✕ Clear</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Warning -->
+        <div id="abstractWarning" class="warning-box" style="display:none">
+            ⚠️ This looks like only an abstract. Upload the full paper for better results.
+        </div>
+
+        <!-- Results -->
+        <section id="results" class="results" style="display:none">
+            <div class="results-top">
+                <h2 class="section-title">Analysis Results</h2>
+                <div class="result-actions">
+                    <button id="copyBtn" class="action-btn">📋 Copy</button>
+                    <button id="downloadTxtBtn" class="action-btn">⬇ TXT</button>
+                    <button id="downloadPdfBtn" class="action-btn">📄 PDF</button>
+                    <button id="emailBtn" class="action-btn">📧 Email</button>
+                    <button id="timelineBtn" class="action-btn">📈 Timeline</button>
+                    <button id="networkBtn" class="action-btn">🔗 Network</button>
+                    <button id="explorerBtn" class="action-btn">🗺️ Explorer</button>
+                    <button id="newBtn" class="action-btn primary">🔄 New</button>
+                </div>
+            </div>
+
+            <div class="results-grid">
+                <!-- Summary -->
+                <div class="result-card qa-card">
+                    <div class="card-top"><h3>📝 Summary</h3><span class="tag">Groq AI</span></div>
+                    <div class="qa-messages">
+                        <div class="qa-message answer" id="summaryText"></div>
+                    </div>
+                </div>
+
+                <!-- Key Insights -->
+                <div class="result-card qa-card">
+                    <div class="card-top"><h3>💡 Key Insights</h3><span class="tag">Top Findings</span></div>
+                    <div class="qa-messages">
+                        <div class="qa-message answer">
+                            <ul id="insightsList" class="insights-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats and Rating Row -->
+                <div class="stats-rating-row">
+                    <!-- Statistics -->
+                    <div class="result-card qa-card stats-card">
+                        <div class="card-top"><h3>📊 Stats</h3></div>
+                        <div class="qa-messages compact">
+                            <div class="qa-message answer compact">
+                                <div class="stats-list">
+                                    <div class="stat-row"><span>Words</span><span id="wordCount">–</span></div>
+                                    <div class="stat-row"><span>Processing Time</span><span id="procTime">–</span></div>
+                                    <div class="stat-row"><span>Insights Found</span><span id="insightCount">–</span></div>
+                                    <div class="stat-row"><span>Reading Time</span><span id="readingTime">0m 0s</span></div>
+                                    <div class="stat-row"><span>Times Opened</span><span id="openCount">1</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rating -->
+                    <div class="result-card qa-card rating-card">
+                        <div class="card-top"><h3>⭐ Rate This Paper</h3></div>
+                        <div class="qa-messages compact">
+                            <div class="qa-message answer compact">
+                                <div class="stars" id="starRating">
+                                    <span class="star" data-val="1">★</span>
+                                    <span class="star" data-val="2">★</span>
+                                    <span class="star" data-val="3">★</span>
+                                    <span class="star" data-val="4">★</span>
+                                    <span class="star" data-val="5">★</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notes -->
+                <div class="result-card qa-card notes-card">
+                    <div class="card-top"><h3>📝 Personal Notes</h3></div>
+                    <div class="qa-messages compact">
+                        <div class="qa-message answer compact">
+                            <textarea id="noteInput" class="note-input" placeholder="Add your notes about this paper..."></textarea>
+                            <button id="saveNoteBtn" class="analyze-btn" style="margin-top:0.8rem">Save Note</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Q&A Section -->
+                <div class="result-card qa-card">
+                    <div class="card-top"><h3>❓ Ask Questions</h3><span class="tag">AI Assistant</span></div>
+                    <div class="qa-messages" id="qaMessages"></div>
+                    <div class="qa-input-section">
+                        <input type="text" id="qaInput" class="qa-input" placeholder="Ask a question about this paper..." />
+                        <button id="qaSendBtn" class="qa-send-btn">Ask</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ── HISTORY TAB ── -->
+    <div id="tab-history" class="tab-content">
+        <h2 class="section-title" style="margin-top:2rem">📚 Analysis History</h2>
+        <div id="historyList" class="history-list"></div>
+    </div>
+
+    <!-- ── COMPARE TAB ── -->
+    <div id="tab-compare" class="tab-content">
+        <h2 class="section-title" style="margin-top:2rem">⚖️ Compare Papers</h2>
+        <div class="compare-grid">
+            <div class="compare-card">
+                <div class="compare-header">
+                    <h3>📄 Paper 1</h3>
+                </div>
+                <div class="compare-input-section">
+                    <label class="field-label">Paper Title</label>
+                    <input type="text" id="title1" class="compare-title-input" placeholder="Enter first paper title">
+                </div>
+                <div class="compare-input-section">
+                    <label class="field-label">Upload PDF or Paste Text</label>
+                    <div class="compare-drop" id="compareDrop1" onclick="document.getElementById('comparePdf1').click()">
+                        <div class="drop-icon">📄</div>
+                        <span id="compareDropText1">Click to upload PDF/DOCX</span>
+                        <div class="drop-hint">Max 10MB</div>
+                    </div>
+                    <input type="file" id="comparePdf1" accept=".pdf,.docx" hidden>
+                    <div class="compare-divider"><span>OR</span></div>
+                    <textarea id="compareText1" rows="8" class="compare-textarea" placeholder="Paste your first research paper content here..."></textarea>
+                    <div class="textarea-info">
+                        <span class="char-count" id="charCount1">0 characters</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="compare-card">
+                <div class="compare-header">
+                    <h3>📄 Paper 2</h3>
+                </div>
+                <div class="compare-input-section">
+                    <label class="field-label">Paper Title</label>
+                    <input type="text" id="title2" class="compare-title-input" placeholder="Enter second paper title">
+                </div>
+                <div class="compare-input-section">
+                    <label class="field-label">Upload PDF or Paste Text</label>
+                    <div class="compare-drop" id="compareDrop2" onclick="document.getElementById('comparePdf2').click()">
+                        <div class="drop-icon">📄</div>
+                        <span id="compareDropText2">Click to upload PDF/DOCX</span>
+                        <div class="drop-hint">Max 10MB</div>
+                    </div>
+                    <input type="file" id="comparePdf2" accept=".pdf,.docx" hidden>
+                    <div class="compare-divider"><span>OR</span></div>
+                    <textarea id="compareText2" rows="8" class="compare-textarea" placeholder="Paste your second research paper content here..."></textarea>
+                    <div class="textarea-info">
+                        <span class="char-count" id="charCount2">0 characters</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="compare-action">
+            <button id="compareBtn" class="analyze-btn">
+                <span class="btn-text">⚖️ Compare Papers</span>
+                <span class="btn-loader" style="display:none">🔄</span>
+            </button>
+        </div>
+        
+        <div id="compareResult" class="compare-result" style="display:none">
+            <div class="result-header">
+                <h3>📊 Comparison Results</h3>
+                <div class="result-actions">
+                    <button id="compareDownloadTxt" class="action-btn">📄 Download TXT</button>
+                    <button id="compareDownloadPdf" class="action-btn">📋 Download PDF</button>
+                </div>
+            </div>
+            <div class="result-content"></div>
+        </div>
+    </div>
+
+</main>
+
+<!-- Floating Chat Widget -->
+<div id="chatWidget" class="chat-widget" style="display:none">
+    <div class="chat-widget-header">
+        <span>🤖 Research Assistant</span>
+        <button id="closeChatWidget" class="chat-close-btn">×</button>
+    </div>
+    <div class="chat-widget-messages" id="chatWidgetMessages"></div>
+    <div class="chat-widget-input">
+        <input type="text" id="chatWidgetInput" placeholder="Ask about this paper..." />
+        <button id="chatWidgetSend">➤</button>
+    </div>
+</div>
+
+<!-- Chat Toggle Button -->
+<div id="chatToggle" class="chat-toggle" style="display:none">
+    💬
+</div>
+
+<!-- Timeline View Modal -->
+<div id="timelineModal" class="modal timeline-modal" style="display:none">
+    <div class="modal-card timeline-card">
+        <div class="modal-header">
+            <h3>📈 Research Timeline</h3>
+            <button onclick="closeTimelineModal()" class="modal-close">×</button>
+        </div>
+        <div id="timelineContainer" class="timeline-container"></div>
+    </div>
+</div>
+
+<!-- Citation Network Modal -->
+<div id="networkModal" class="modal network-modal" style="display:none">
+    <div class="modal-card network-card">
+        <div class="modal-header">
+            <h3>🔗 Citation Network</h3>
+            <button onclick="closeNetworkModal()" class="modal-close">×</button>
+        </div>
+        <div id="networkContainer" class="network-container"></div>
+    </div>
+</div>
+
+<!-- Visual Explorer Modal -->
+<div id="explorerModal" class="modal explorer-modal" style="display:none">
+    <div class="modal-card explorer-card">
+        <div class="modal-header">
+            <h3>🗺️ Research Explorer</h3>
+            <button onclick="closeExplorerModal()" class="modal-close">×</button>
+        </div>
+        <div id="explorerContainer" class="explorer-container"></div>
+    </div>
+</div>
+
+<!-- Email Modal -->
+<div id="emailModal" class="modal" style="display:none">
+    <div class="modal-card">
+        <h3>📧 Email Summary</h3>
+        <input type="email" id="emailInput" placeholder="Enter email address" class="modal-input">
+        <div class="modal-actions">
+            <button id="sendEmailBtn" class="analyze-btn">Send</button>
+            <button onclick="closeModal()" class="clear-btn">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>© 2024 ResearchAI · Powered by Groq Llama-3.3 & Machine Learning</p>
+</footer>
+
+<div id="toast" class="toast"></div>
+<script src="script.js"></script>
+<script src="compare.js"></script>
+</body>
+</html>
