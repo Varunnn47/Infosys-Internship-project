@@ -35,7 +35,7 @@ from auth import (
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
-app = FastAPI(title="AI Research Paper Summarizer API")
+app = FastAPI(title="AI Research Paper Summarizer API", root_path="/api")
 
 # Configure CORS based on environment
 allowed_origins = [
