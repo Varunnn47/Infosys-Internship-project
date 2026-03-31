@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import AuthPage from './pages/AuthPage'
+import LandingPage from './pages/LandingPage'
 import AnalyzeTab from './pages/AnalyzeTab'
 import HistoryTab from './pages/HistoryTab'
 import CompareTab from './pages/CompareTab'
@@ -10,16 +11,25 @@ import { ToastContainer } from './components/Toast'
 export default function App() {
   const [authed, setAuthed] = useState(!!localStorage.getItem('access_token'))
   const [tab, setTab] = useState('analyze')
+  const [showAuth, setShowAuth] = useState(false)
 
   function logout() {
     localStorage.removeItem('access_token')
     localStorage.removeItem('username')
     setAuthed(false)
+    setShowAuth(false)
   }
 
-  if (!authed) return (
+  if (!authed && !showAuth) return (
     <>
-      <AuthPage onLogin={() => setAuthed(true)} />
+      <LandingPage onGetStarted={() => setShowAuth(true)} />
+      <ToastContainer />
+    </>
+  )
+
+  if (!authed && showAuth) return (
+    <>
+      <AuthPage onLogin={() => { setAuthed(true); setShowAuth(false) }} />
       <ToastContainer />
     </>
   )
