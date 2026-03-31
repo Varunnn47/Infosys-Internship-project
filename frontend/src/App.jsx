@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import API from './api'
 import AuthPage from './pages/AuthPage'
 import LandingPage from './pages/LandingPage'
 import AnalyzeTab from './pages/AnalyzeTab'
@@ -12,6 +13,9 @@ export default function App() {
   const [authed, setAuthed] = useState(!!localStorage.getItem('access_token'))
   const [tab, setTab] = useState('analyze')
   const [showAuth, setShowAuth] = useState(false)
+
+  // Wake up backend on app load
+  useEffect(() => { fetch(`${API}/`).catch(() => {}) }, [])
 
   function logout() {
     localStorage.removeItem('access_token')

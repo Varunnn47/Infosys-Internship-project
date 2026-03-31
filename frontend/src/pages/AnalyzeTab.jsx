@@ -53,6 +53,8 @@ export default function AnalyzeTab() {
     if (!file && !text.trim()) return toast('Please upload a PDF or paste text', 'error')
     setLoading(true); setStep(0); setResults(null)
     try {
+      // Wake up backend first
+      await fetch(`${API}/`).catch(() => {})
       for (let i = 0; i < STEPS.length; i++) { setStep(i); await new Promise(r => setTimeout(r, 300)) }
       let data
       if (file) {
