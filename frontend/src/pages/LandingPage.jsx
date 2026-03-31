@@ -53,11 +53,6 @@ export default function LandingPage({ onGetStarted }) {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan/5 rounded-full blur-3xl pointer-events-none" />
 
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative z-10">
-          <motion.span initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }}
-            className="inline-block bg-purple/10 border border-purple/30 text-purple text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
-            ✨ Powered by Groq Llama-3.3-70b
-          </motion.span>
-
           <h1 className="text-6xl font-bold grad-text mb-6 leading-tight">
             Understand Research Papers<br />in Seconds
           </h1>
