@@ -361,8 +361,10 @@ def process_text(text: str, title: str, username: str, tags: list = None, folder
 
     analysis_id = save_analysis(username, title, summary, insights, word_count, citations, processing_time, tags, folder)
     
-    # Save FAISS cache to MongoDB
-    save_faiss_cache(analysis_id, chunks, embeddings)
+    try:
+        save_faiss_cache(analysis_id, chunks, None)
+    except Exception:
+        pass
 
     return {
         "analysis_id": analysis_id,
