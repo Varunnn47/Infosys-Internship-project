@@ -187,10 +187,8 @@ def chunk_text(text: str, chunk_size: int = 400) -> List[str]:
 def generate_embeddings(chunks: List[str]) -> np.ndarray:
     return None
 
-def build_faiss_index(embeddings: np.ndarray) -> faiss.IndexFlatL2:
-    index = faiss.IndexFlatL2(embeddings.shape[1])
-    index.add(embeddings)
-    return index
+def build_faiss_index(embeddings):
+    return None
 
 def groq_chat(system: str, user: str, max_tokens: int = 400) -> Optional[str]:
     key = os.getenv("GROQ_API_KEY", "")
