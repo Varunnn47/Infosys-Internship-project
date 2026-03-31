@@ -5,9 +5,13 @@ uvicorn[standard]==0.24.0
 pymupdf==1.23.8
 faiss-cpu==1.8.0
 numpy==1.24.3
+torch==2.1.2+cpu
+torchvision==0.16.2+cpu
+transformers==4.37.2
+tokenizers==0.15.2
 sentence-transformers==2.7.0
-torch==2.1.0+cpu
-torchvision==0.16.0+cpu
+huggingface-hub==0.20.3
+safetensors==0.4.2
 python-multipart==0.0.6
 groq==0.4.1
 python-jose[cryptography]==3.3.0

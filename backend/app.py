@@ -35,6 +35,10 @@ from auth import (
 
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 
+# Block all HuggingFace downloads at runtime
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_DATASETS_OFFLINE"] = "1"
+
 app = FastAPI(title="AI Research Paper Summarizer API", root_path="/api")
 
 # Configure CORS based on environment

@@ -1,4 +1,4 @@
 #!/bin/bash
 set -e
 pip install -r requirements.txt
-python download_model.py
+echo "Build complete. Model will be loaded from ./model"
