@@ -481,10 +481,6 @@ async def chat_with_paper(data: ChatInput, current_user: dict = Depends(get_curr
     )
     if answer:
         return {"answer": answer}
-    sentences = [s.strip() for s in rag_context.split('.') if len(s.strip()) > 30]
-    matches = [s for s in sentences if any(w in s.lower() for w in data.question.lower().split() if len(w) > 3)]
-    if matches:
-        return {"answer": ' '.join(matches[:3]) + '.'}
     return {"answer": "I couldn't find a specific answer in the paper. Try rephrasing your question."}
 
 # ── Feature 2: History ──

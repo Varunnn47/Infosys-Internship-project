@@ -89,9 +89,13 @@ export default function AnalyzeTab() {
 
   async function sendQA() {
     if (!qaInput.trim() || !results) return
-    const q = qaInput; setQaInput(''); setQaMessages(m => [...m, { type: 'question', text: q }]); setQaLoading(true)
+    const q = qaInput
+    setQaInput('')
+    setQaMessages(m => [...m, { type: 'question', text: q }])
+    setQaLoading(true)
+    const ctx = `Summary: ${results.summary}\n\nKey Insights: ${(results.insights || []).join('. ')}`
     try {
-      const res = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ question: q, context: results.summary + ' ' + (results.insights || []).join(' ') }) })
+      const res = await apiFetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q, context: ctx }) })
       const data = await res.json()
       setQaMessages(m => [...m, { type: 'answer', text: data.answer }])
     } catch { setQaMessages(m => [...m, { type: 'answer', text: 'Could not get answer.' }]) }
@@ -100,9 +104,12 @@ export default function AnalyzeTab() {
 
   async function sendChat() {
     if (!chatInput.trim() || !results) return
-    const q = chatInput; setChatInput(''); setChatMessages(m => [...m, { type: 'user', text: q }])
+    const q = chatInput
+    setChatInput('')
+    setChatMessages(m => [...m, { type: 'user', text: q }])
+    const ctx = `Summary: ${results.summary}\n\nKey Insights: ${(results.insights || []).join('. ')}`
     try {
-      const res = await fetch(`${API}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ question: q, context: results.summary + ' ' + (results.insights || []).join(' ') }) })
+      const res = await apiFetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q, context: ctx }) })
       const data = await res.json()
       setChatMessages(m => [...m, { type: 'ai', text: data.answer }])
     } catch { setChatMessages(m => [...m, { type: 'ai', text: 'Error getting response.' }]) }
