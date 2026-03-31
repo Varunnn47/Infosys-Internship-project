@@ -1,7 +1,7 @@
 // Detect environment and set API URL
-const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? 'http://127.0.0.1:8000' 
-    : `${window.location.origin}/api`;
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://127.0.0.1:8000'
+    : 'https://iip-e723.onrender.com';
 
 // ── Auth guard ──
 const token = localStorage.getItem('access_token');
