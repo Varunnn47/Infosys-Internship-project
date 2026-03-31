@@ -41,28 +41,22 @@ os.environ["HF_DATASETS_OFFLINE"] = "1"
 
 app = FastAPI(title="AI Research Paper Summarizer API")
 
-# Configure CORS based on environment
+# Configure CORS
 allowed_origins = [
     "http://localhost:3000",
-    "http://localhost:8080", 
+    "http://localhost:8080",
     "http://127.0.0.1:8080",
-    "http://localhost:5173",  # Vite dev server
-    "file://",  # Allow file protocol for local HTML files
-    "null",     # Allow null origin for local files
+    "http://localhost:5173",
+    "file://",
+    "null",
 ]
 
 # Add production origins
-if os.getenv("ENVIRONMENT") == "production":
-    frontend_url = os.getenv("FRONTEND_URL", "")
-    allowed_origins = [frontend_url, "https://iipf.onrender.com", "https://*.onrender.com"] if frontend_url else ["*"]
-else:
-    allowed_origins = ["*"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
