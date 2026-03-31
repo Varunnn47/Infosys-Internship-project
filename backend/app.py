@@ -62,11 +62,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'models', 'all-MiniLM-L6-v2')
-try:
-    model = SentenceTransformer(MODEL_PATH)
-except Exception:
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models', 'all-MiniLM-L6-v2')
+model = SentenceTransformer(MODEL_PATH)
 
 # In-memory FAISS store per user session
 faiss_store = {}
