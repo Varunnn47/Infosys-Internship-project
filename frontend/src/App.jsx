@@ -45,7 +45,7 @@ export default function App() {
         </motion.div>
       </AnimatePresence>
       <footer className="bg-bg-2 border-t border-border py-6 text-center text-muted text-sm mt-16">
-        © 2024 ResearchAI · Powered by Groq Llama-3.3 & Machine Learning
+        © 2024 ResearchAI
       </footer>
       <ToastContainer />
     </div>

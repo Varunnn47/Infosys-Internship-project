@@ -170,7 +170,7 @@ export default function LandingPage({ onGetStarted }) {
 
       {/* Footer */}
       <footer className="bg-bg-2 border-t border-border py-8 text-center text-muted text-sm">
-        © 2024 ResearchAI · Powered by Groq Llama-3.3 & Machine Learning
+        © 2024 ResearchAI
       </footer>
     </div>
   )

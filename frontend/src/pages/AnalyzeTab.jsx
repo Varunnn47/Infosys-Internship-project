@@ -149,7 +149,7 @@ export default function AnalyzeTab() {
         <h1 className="text-5xl font-bold grad-text mb-4">AI Research Paper Summarizer</h1>
         <p className="text-sub text-lg mb-6">Extract key insights from any research paper in seconds</p>
         <div className="flex justify-center gap-3 flex-wrap">
-          {['⚡ Fast', '🎯 Accurate', '🤖 Groq', '🔒 Secure'].map(b => (
+          {['⚡ Fast', '🎯 Accurate', '🔒 Secure'].map(b => (
             <motion.span key={b} whileHover={{ scale: 1.05, borderColor: '#8b5cf6', color: '#8b5cf6' }}
               className="bg-card border border-border px-4 py-1.5 rounded-full text-sm font-semibold text-sub cursor-default transition-all">
               {b}
@@ -246,7 +246,7 @@ export default function AnalyzeTab() {
 
             <div className="flex flex-col gap-6">
               {/* Summary */}
-              <ResultCard title="📝 Summary" tag="Groq AI">
+              <ResultCard title="📝 Summary">
                 <p className="text-sub leading-relaxed whitespace-pre-line text-sm">{results.summary}</p>
               </ResultCard>
 
