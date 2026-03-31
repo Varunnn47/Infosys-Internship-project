@@ -62,8 +62,12 @@ model = None
 def get_model():
     global model
     if model is None:
-        model = SentenceTransformer(MODEL_PATH)
-    return model
+        try:
+            model = SentenceTransformer(MODEL_PATH)
+        except Exception as e:
+            print(f"Model load error: {e}")
+            model = False
+    return model if model else None
 
 # In-memory FAISS store per user session
 faiss_store = {}
@@ -190,7 +194,10 @@ def chunk_text(text: str, chunk_size: int = 400) -> List[str]:
     return chunks
 
 def generate_embeddings(chunks: List[str]) -> np.ndarray:
-    return np.array(get_model().encode(chunks)).astype('float32')
+    m = get_model()
+    if m is None:
+        return np.zeros((len(chunks), 384), dtype='float32')
+    return np.array(m.encode(chunks)).astype('float32')
 
 def build_faiss_index(embeddings: np.ndarray) -> faiss.IndexFlatL2:
     index = faiss.IndexFlatL2(embeddings.shape[1])
@@ -459,11 +466,13 @@ async def chat_with_paper(data: ChatInput, current_user: dict = Depends(get_curr
     
     # Try to load from in-memory cache first
     if username in faiss_store:
-        store = faiss_store[username]
-        query_embedding = np.array(get_model().encode([data.question])).astype('float32')
-        _, indices = store["index"].search(query_embedding, k=5)
-        relevant_chunks = [store["chunks"][i] for i in indices[0] if i < len(store["chunks"])]
-        rag_context = " ".join(relevant_chunks)
+        m = get_model()
+        if m:
+            store = faiss_store[username]
+            query_embedding = np.array(m.encode([data.question])).astype('float32')
+            _, indices = store["index"].search(query_embedding, k=5)
+            relevant_chunks = [store["chunks"][i] for i in indices[0] if i < len(store["chunks"])]
+            rag_context = " ".join(relevant_chunks)
     else:
         # Try to load from MongoDB cache (for persistent storage)
         # This would require analysis_id - for now use fallback context
