@@ -74,9 +74,10 @@ quick_*.py
 .cache/
 .pytest_cache/
 
-# Model cache
+# Model cache (HuggingFace cache only, NOT the local model folder)
 sentence_transformers_cache/
 transformers_cache/
+~/.cache/huggingface/
 
 # Jupyter
 .ipynb_checkpoints/
