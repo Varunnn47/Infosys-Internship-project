@@ -39,7 +39,7 @@ load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 os.environ["HF_DATASETS_OFFLINE"] = "1"
 
-app = FastAPI(title="AI Research Paper Summarizer API", root_path="/api")
+app = FastAPI(title="AI Research Paper Summarizer API")
 
 # Configure CORS based on environment
 allowed_origins = [
