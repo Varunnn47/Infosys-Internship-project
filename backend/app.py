@@ -62,8 +62,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+MODEL_PATH = os.path.join(os.path.dirname(__file__), 'models', 'all-MiniLM-L6-v2')
 try:
-    model = SentenceTransformer('all-MiniLM-L6-v2', local_files_only=True)
+    model = SentenceTransformer(MODEL_PATH)
 except Exception:
     model = SentenceTransformer('all-MiniLM-L6-v2')
 
