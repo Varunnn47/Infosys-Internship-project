@@ -54,7 +54,7 @@ allowed_origins = [
 # Add production origins
 if os.getenv("ENVIRONMENT") == "production":
     frontend_url = os.getenv("FRONTEND_URL", "")
-    allowed_origins = [frontend_url, "https://*.netlify.app"] if frontend_url else ["*"]
+    allowed_origins = [frontend_url, "https://iipf.onrender.com", "https://*.onrender.com"] if frontend_url else ["*"]
 else:
     allowed_origins = ["*"]
 
