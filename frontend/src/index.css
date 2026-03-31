@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #1e293b; }
+  ::-webkit-scrollbar-thumb { background: #8b5cf6; border-radius: 3px; }
+}
+
+@layer components {
+  .grad-text {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200%;
+    animation: gradShift 4s ease infinite;
+  }
+  .grad-btn {
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    @apply text-white font-semibold rounded-xl transition-all duration-200 shadow-glow;
+  }
+  .grad-btn:hover:not(:disabled) { transform: translateY(-2px); @apply shadow-glow-lg; }
+  .grad-btn:disabled { @apply opacity-60 cursor-not-allowed; }
+  .card {
+    @apply bg-card border border-border rounded-2xl relative overflow-hidden transition-all duration-200;
+  }
+  .card::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-[3px];
+    background: linear-gradient(90deg, #8b5cf6, #ec4899, #06b6d4);
+  }
+  .card:hover { transform: translateY(-3px); @apply border-purple shadow-glow; }
+  .input-field {
+    @apply w-full px-4 py-3 bg-purple/5 border-2 border-border rounded-xl text-white font-sans text-sm transition-all duration-200 placeholder-muted;
+  }
+  .input-field:focus { @apply outline-none border-purple shadow-[0_0_0_3px_rgba(139,92,246,0.25)] bg-purple/10; }
+  .section-title {
+    @apply text-3xl font-bold text-center mb-8;
+  }
+  .section-title::after {
+    content: '';
+    @apply block w-[70px] h-[3px] mx-auto mt-2 rounded;
+    background: linear-gradient(90deg, #8b5cf6, #ec4899);
+  }
+}
