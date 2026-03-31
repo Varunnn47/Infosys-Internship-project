@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import API from '../api'
+import API, { apiFetch } from '../api'
 import { toast } from '../components/Toast'
 
 const STEPS = ['📄 Extracting', '✂️ Chunking', '🧠 Embedding', '✨ Summarizing', '💡 Insights']
