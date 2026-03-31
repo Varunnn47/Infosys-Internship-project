@@ -31,7 +31,7 @@ from auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.env'), override=False)
 
 app = FastAPI(title="AI Research Paper Summarizer API")
 
