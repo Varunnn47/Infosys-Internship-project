@@ -8,8 +8,6 @@ import fitz
 from docx import Document as DocxDocument
 import re
 import numpy as np
-import faiss
-from sentence_transformers import SentenceTransformer
 from typing import List, Optional
 import os
 import time
@@ -56,21 +54,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model')
-model = None
-
-def get_model():
-    global model
-    if model is None:
-        try:
-            model = SentenceTransformer(MODEL_PATH)
-        except Exception as e:
-            print(f"Model load error: {e}")
-            model = False
-    return model if model else None
-
-# In-memory FAISS store per user session
+# In-memory store per user session
 faiss_store = {}
+
+def generate_embeddings(chunks):
+    return None
+
+def build_faiss_index(embeddings):
+    return None
 
 # ── Pydantic Models ──
 class UserCreate(BaseModel):
@@ -194,10 +185,7 @@ def chunk_text(text: str, chunk_size: int = 400) -> List[str]:
     return chunks
 
 def generate_embeddings(chunks: List[str]) -> np.ndarray:
-    m = get_model()
-    if m is None:
-        return np.zeros((len(chunks), 384), dtype='float32')
-    return np.array(m.encode(chunks)).astype('float32')
+    return None
 
 def build_faiss_index(embeddings: np.ndarray) -> faiss.IndexFlatL2:
     index = faiss.IndexFlatL2(embeddings.shape[1])
@@ -358,8 +346,13 @@ def process_text(text: str, title: str, username: str, tags: list = None, folder
     cleaned = clean_text(text)
     chunks = chunk_text(cleaned)
     embeddings = generate_embeddings(chunks)
-    index = build_faiss_index(embeddings)
-    faiss_store[username] = {"index": index, "chunks": chunks}
+    if embeddings is not None:
+        try:
+            import faiss
+            index = build_faiss_index(embeddings)
+            faiss_store[username] = {"index": index, "chunks": chunks}
+        except Exception:
+            pass
 
     summary = generate_summary(chunks)
     insights = extract_insights(chunks)
@@ -466,13 +459,18 @@ async def chat_with_paper(data: ChatInput, current_user: dict = Depends(get_curr
     
     # Try to load from in-memory cache first
     if username in faiss_store:
-        m = get_model()
-        if m:
+        try:
+            import faiss
             store = faiss_store[username]
-            query_embedding = np.array(m.encode([data.question])).astype('float32')
-            _, indices = store["index"].search(query_embedding, k=5)
-            relevant_chunks = [store["chunks"][i] for i in indices[0] if i < len(store["chunks"])]
-            rag_context = " ".join(relevant_chunks)
+            if store.get('index'):
+                from sentence_transformers import SentenceTransformer
+                m = SentenceTransformer(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model'))
+                query_embedding = np.array(m.encode([data.question])).astype('float32')
+                _, indices = store["index"].search(query_embedding, k=5)
+                relevant_chunks = [store["chunks"][i] for i in indices[0] if i < len(store["chunks"])]
+                rag_context = " ".join(relevant_chunks)
+        except Exception as e:
+            print(f"RAG error: {e}")
     else:
         # Try to load from MongoDB cache (for persistent storage)
         # This would require analysis_id - for now use fallback context
