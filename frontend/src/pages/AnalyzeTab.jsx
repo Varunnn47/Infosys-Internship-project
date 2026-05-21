@@ -49,6 +49,14 @@ export default function AnalyzeTab() {
     return `${m}m ${s}s`
   }
 
+  async function parseResponse(res) {
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      throw new Error(json.detail || json.message || 'Request failed')
+    }
+    return json
+  }
+
   async function analyze() {
     if (!file && !text.trim()) return toast('Please upload a PDF or paste text', 'error')
     setLoading(true); setStep(0); setResults(null)
@@ -59,13 +67,11 @@ export default function AnalyzeTab() {
       let data
       if (file) {
         const fd = new FormData(); fd.append('file', file)
-        const res = await fetch(`${API}/upload`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
-        if (!res.ok) throw new Error((await res.json()).detail || 'Upload failed')
-        data = await res.json()
+        const res = await apiFetch('/upload', { method: 'POST', body: fd })
+        data = await parseResponse(res)
       } else {
-        const res = await fetch(`${API}/summarize`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ text }) })
-        if (!res.ok) throw new Error((await res.json()).detail || 'Failed')
-        data = await res.json()
+        const res = await apiFetch('/summarize', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) })
+        data = await parseResponse(res)
       }
       setResults(data); setAnalysisId(data.analysis_id); setContext(text || '')
       setReadingTime(0); setOpenCount(1); setRating(0); setNote(''); setQaMessages([])
@@ -78,13 +84,23 @@ export default function AnalyzeTab() {
 
   async function saveRating(val) {
     setRating(val)
-    await fetch(`${API}/rate`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ analysis_id: analysisId, rating: val }) })
-    toast(`Rated ${val} stars!`, 'success')
+    try {
+      const res = await apiFetch('/rate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis_id: analysisId, rating: val }) })
+      await parseResponse(res)
+      toast(`Rated ${val} stars!`, 'success')
+    } catch (err) {
+      toast(err.message, 'error')
+    }
   }
 
   async function saveNote() {
-    await fetch(`${API}/note`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ analysis_id: analysisId, note }) })
-    toast('Note saved!', 'success')
+    try {
+      const res = await apiFetch('/note', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis_id: analysisId, note }) })
+      await parseResponse(res)
+      toast('Note saved!', 'success')
+    } catch (err) {
+      toast(err.message, 'error')
+    }
   }
 
   async function sendQA() {
@@ -93,13 +109,19 @@ export default function AnalyzeTab() {
     setQaInput('')
     setQaMessages(m => [...m, { type: 'question', text: q }])
     setQaLoading(true)
-    const ctx = `Summary: ${results.summary}\n\nKey Insights: ${(results.insights || []).join('. ')}`
+    const ctx = [
+      `Title: ${results.title || 'Research Paper'}`,
+      `Summary: ${results.summary}`,
+      `Key Insights: ${(results.insights || []).join('. ')}`,
+      `Citations: ${(results.citations || []).join(' | ')}`,
+    ].join('\n\n')
     try {
       const res = await apiFetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q, context: ctx }) })
-      const data = await res.json()
+      const data = await parseResponse(res)
       setQaMessages(m => [...m, { type: 'answer', text: data.answer }])
-    } catch { setQaMessages(m => [...m, { type: 'answer', text: 'Could not get answer.' }]) }
-    finally { setQaLoading(false) }
+    } catch (err) {
+      setQaMessages(m => [...m, { type: 'answer', text: err.message || 'Could not get answer.' }])
+    } finally { setQaLoading(false) }
   }
 
   async function sendChat() {
@@ -107,20 +129,32 @@ export default function AnalyzeTab() {
     const q = chatInput
     setChatInput('')
     setChatMessages(m => [...m, { type: 'user', text: q }])
-    const ctx = `Summary: ${results.summary}\n\nKey Insights: ${(results.insights || []).join('. ')}`
+    const ctx = [
+      `Title: ${results.title || 'Research Paper'}`,
+      `Summary: ${results.summary}`,
+      `Key Insights: ${(results.insights || []).join('. ')}`,
+      `Citations: ${(results.citations || []).join(' | ')}`,
+    ].join('\n\n')
     try {
       const res = await apiFetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: q, context: ctx }) })
-      const data = await res.json()
+      const data = await parseResponse(res)
       setChatMessages(m => [...m, { type: 'ai', text: data.answer }])
-    } catch { setChatMessages(m => [...m, { type: 'ai', text: 'Error getting response.' }]) }
+    } catch (err) {
+      setChatMessages(m => [...m, { type: 'ai', text: err.message || 'Error getting response.' }])
+    }
   }
 
   async function downloadPdf() {
-    const res = await fetch(`${API}/export/${analysisId}`, { headers: { Authorization: `Bearer ${token}` } })
-    const blob = await res.blob()
-    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `analysis-${analysisId}.pdf` })
-    document.body.appendChild(a); a.click(); a.remove()
-    toast('PDF Downloaded!', 'success')
+    try {
+      const res = await apiFetch(`/export/${analysisId}`)
+      if (!res.ok) throw new Error('Failed to download PDF')
+      const blob = await res.blob()
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `analysis-${analysisId}.pdf` })
+      document.body.appendChild(a); a.click(); a.remove()
+      toast('PDF Downloaded!', 'success')
+    } catch (err) {
+      toast(err.message, 'error')
+    }
   }
 
   function downloadTxt() {
@@ -132,16 +166,25 @@ export default function AnalyzeTab() {
 
   async function sendEmail() {
     if (!emailAddr) return toast('Enter an email address', 'error')
-    const res = await fetch(`${API}/email-summary`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ analysis_id: analysisId, email: emailAddr }) })
-    if (res.ok) { toast(`Summary sent to ${emailAddr}`, 'success'); setShowEmail(false) }
-    else toast('Failed to send email', 'error')
+    try {
+      const res = await apiFetch('/email-summary', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ analysis_id: analysisId, email: emailAddr }) })
+      await parseResponse(res)
+      toast(`Summary sent to ${emailAddr}`, 'success')
+      setShowEmail(false)
+    } catch (err) {
+      toast(err.message, 'error')
+    }
   }
 
   async function loadTimeline() {
     setShowTimeline(true)
-    const res = await fetch(`${API}/history`, { headers: { Authorization: `Bearer ${token}` } })
-    const data = await res.json()
-    setTimeline(data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10))
+    try {
+      const res = await apiFetch('/history')
+      const data = await parseResponse(res)
+      setTimeline(data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 10))
+    } catch (err) {
+      toast(err.message, 'error')
+    }
   }
 
   function onDrop(e) {

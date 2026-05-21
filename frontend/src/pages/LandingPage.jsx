@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 
 const features = [
-  { icon: '🤖', title: 'AI-Powered Summaries', desc: 'Groq Llama-3.3-70b generates concise, accurate summaries in seconds.' },
+  { icon: '🤖', title: 'AI-Powered Summaries', desc: 'Our AI backend generates concise, accurate summaries in seconds.' },
   { icon: '💡', title: 'Key Insights', desc: 'Automatically extracts the most important findings and contributions.' },
   { icon: '⚖️', title: 'Paper Comparison', desc: 'Side-by-side analysis of two research papers to find similarities and differences.' },
   { icon: '❓', title: 'Chat with Papers', desc: 'Ask questions about your uploaded paper and get instant AI answers.' },
@@ -11,7 +11,7 @@ const features = [
 
 const steps = [
   { n: '01', title: 'Upload Your Paper', desc: 'Drag & drop a PDF/DOCX or paste text directly.' },
-  { n: '02', title: 'AI Analyzes It', desc: 'Groq AI processes and extracts key information instantly.' },
+  { n: '02', title: 'AI Analyzes It', desc: 'Our backend processes and extracts key information instantly.' },
   { n: '03', title: 'Get Insights', desc: 'Receive a summary, key insights, citations, and more.' },
 ]
 
