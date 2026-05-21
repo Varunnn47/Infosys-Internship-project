@@ -340,6 +340,65 @@ def extract_citations(text: str) -> List[str]:
 def detect_abstract(text: str) -> bool:
     return len(text.split()) < 300
 
+# Compare helpers
+stopwords = {
+    'the', 'and', 'for', 'that', 'with', 'this', 'from', 'paper', 'are', 'was', 'were', 'has', 'have',
+    'not', 'but', 'its', 'their', 'they', 'which', 'also', 'can', 'may', 'than', 'using', 'provide',
+    'based', 'study', 'system', 'systems', 'research', 'model', 'models', 'method', 'methods', 'using',
+    'data', 'result', 'results', 'include', 'includes', 'approach', 'approaches', 'task', 'tasks'
+}
+
+def extract_top_terms(text: str, limit: int = 6) -> List[str]:
+    words = re.findall(r"\b[a-z]{4,}\b", text.lower())
+    filtered = [w for w in words if w not in stopwords]
+    return [word for word, _ in Counter(filtered).most_common(limit)]
+
+def extract_top_phrases(text: str, limit: int = 4) -> List[str]:
+    words = re.findall(r"\b[a-z]{4,}\b", text.lower())
+    phrases = [f"{words[i]} {words[i+1]}" for i in range(len(words)-1)]
+    filtered = [p for p in phrases if all(w not in stopwords for w in p.split())]
+    return [phrase for phrase, _ in Counter(filtered).most_common(limit)]
+
+def build_fallback_comparison(data: CompareInput) -> dict:
+    words1 = re.findall(r"\b\w+\b", data.text1.lower())
+    words2 = re.findall(r"\b\w+\b", data.text2.lower())
+    set1 = set(words1)
+    set2 = set(words2)
+    overlap = round(len(set1 & set2) / max(len(set1 | set2), 1) * 100, 1)
+
+    top1 = extract_top_terms(data.text1, limit=6)
+    top2 = extract_top_terms(data.text2, limit=6)
+    shared = [w for w in top1 if w in top2]
+    unique1 = [w for w in top1 if w not in shared]
+    unique2 = [w for w in top2 if w not in shared]
+    phrases1 = extract_top_phrases(data.text1, limit=3)
+    phrases2 = extract_top_phrases(data.text2, limit=3)
+
+    length_comparison = ''
+    if len(words1) > len(words2) * 1.5:
+        length_comparison = f"{data.title1} is substantially longer than {data.title2}, suggesting it covers more detail."
+    elif len(words2) > len(words1) * 1.5:
+        length_comparison = f"{data.title2} is substantially longer than {data.title1}, suggesting it covers more scope."
+    else:
+        length_comparison = "Both papers are similar in length and appear to cover comparable amounts of content."
+
+    comparison_text = (
+        f"Comparison of {data.title1} and {data.title2}:\n\n"
+        f"{data.title1}: {len(words1)} words\n"
+        f"{data.title2}: {len(words2)} words\n\n"
+        f"{length_comparison}\n\n"
+        f"Top terms in {data.title1}: {', '.join(top1) or 'N/A'}\n"
+        f"Top terms in {data.title2}: {', '.join(top2) or 'N/A'}\n"
+        f"Shared focus terms: {', '.join(shared) or 'None clear'}\n\n"
+        f"Distinct themes in {data.title1}: {', '.join(unique1) or 'None clear'}\n"
+        f"Distinct themes in {data.title2}: {', '.join(unique2) or 'None clear'}\n\n"
+        f"Top phrase examples from {data.title1}: {', '.join(phrases1) or 'None'}\n"
+        f"Top phrase examples from {data.title2}: {', '.join(phrases2) or 'None'}\n\n"
+        f"Word overlap: {overlap}%\n\n"
+        f"This summary is a fallback comparison generated when the AI comparison was unavailable."
+    )
+    return {"comparison": comparison_text, "title1": data.title1, "title2": data.title2}
+
 def process_text(text: str, title: str, username: str, tags: list = None, folder: str = "") -> dict:
     start = time.time()
     cleaned = clean_text(text)
@@ -538,36 +597,7 @@ async def compare_papers(data: CompareInput, current_user: dict = Depends(get_cu
     if result:
         return {"comparison": result, "title1": data.title1, "title2": data.title2}
 
-    # Fallback comparison when AI is unavailable
-    words1 = re.findall(r"\b\w+\b", data.text1.lower())
-    words2 = re.findall(r"\b\w+\b", data.text2.lower())
-    set1 = set(words1)
-    set2 = set(words2)
-    overlap = round(len(set1 & set2) / max(len(set1 | set2), 1) * 100, 1)
-
-    stopwords = {
-        'the', 'and', 'for', 'that', 'with', 'this', 'from', 'paper', 'are', 'was', 'were', 'has', 'have',
-        'not', 'but', 'its', 'their', 'they', 'which', 'also', 'can', 'may', 'than', 'may', 'using', 'provide',
-        'based', 'study', 'system', 'systems'
-    }
-    counter1 = Counter(w for w in words1 if len(w) > 4 and w not in stopwords)
-    counter2 = Counter(w for w in words2 if len(w) > 4 and w not in stopwords)
-    top1 = ', '.join([w for w, _ in counter1.most_common(5)]) or 'N/A'
-    top2 = ', '.join([w for w, _ in counter2.most_common(5)]) or 'N/A'
-
-    return {
-        "comparison": (
-            f"Basic Comparison:\n\n"
-            f"{data.title1}: {len(words1)} words\n"
-            f"{data.title2}: {len(words2)} words\n\n"
-            f"Word overlap: {overlap}%\n\n"
-            f"Top terms in {data.title1}: {top1}\n"
-            f"Top terms in {data.title2}: {top2}\n\n"
-            f"This comparison is a fallback summary because the AI comparison backend was unavailable."
-        ),
-        "title1": data.title1,
-        "title2": data.title2
-    }
+    return build_fallback_comparison(data)
 
 @app.post("/export-compare")
 async def export_compare(data: CompareExportInput, current_user: dict = Depends(get_current_user)):
