@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import API from '../api'
+import API, { apiFetch } from '../api'
 import { toast } from '../components/Toast'
 
 export default function CompareTab() {
@@ -14,23 +14,25 @@ export default function CompareTab() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
 
-  async function extractPdf(file, setDrop, setText, setTitle) {
+  async function extractPdf(file, setDrop, setText, setTitle, currentTitle) {
     setDrop('⏳ Extracting...')
     const fd = new FormData(); fd.append('file', file)
     try {
-      const res = await fetch(`${API}/extract-text`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: fd })
+      const res = await apiFetch('/extract-text', { method: 'POST', body: fd })
       const data = await res.json()
       setText(data.text); setDrop(`✓ ${file.name}`)
-      if (!setTitle.value) setTitle(file.name.replace('.pdf', '').replace('.docx', ''))
+      if (!currentTitle?.trim()) {
+        setTitle(file.name.replace('.pdf', '').replace('.docx', ''))
+      }
       toast('PDF extracted!', 'success')
-    } catch { setDrop('Click to upload PDF/DOCX'); toast('Extraction failed', 'error') }
+    } catch (err) { setDrop('Click to upload PDF/DOCX'); toast(err.message || 'Extraction failed', 'error') }
   }
 
   async function compare() {
     if (!text1.trim() || !text2.trim()) return toast('Please paste both papers', 'error')
     setLoading(true)
     try {
-      const res = await fetch(`${API}/compare`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ text1, text2, title1: title1 || 'Paper 1', title2: title2 || 'Paper 2' }) })
+      const res = await apiFetch('/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text1, text2, title1: title1 || 'Paper 1', title2: title2 || 'Paper 2' }) })
       const data = await res.json()
       if (!res.ok) throw new Error(data.detail || 'Comparison failed')
       setResult(data); toast('Comparison complete!', 'success')
@@ -79,7 +81,7 @@ export default function CompareTab() {
                 <span>{p.drop}</span>
                 <span className="text-xs text-muted">Max 10MB</span>
               </motion.div>
-              <input id={p.fileId} type="file" accept=".pdf,.docx" hidden onChange={e => e.target.files[0] && extractPdf(e.target.files[0], p.setDrop, p.setText, { value: p.title })} />
+              <input id={p.fileId} type="file" accept=".pdf,.docx" hidden onChange={e => e.target.files[0] && extractPdf(e.target.files[0], p.setDrop, p.setText, p.setTitle, p.title)} />
             </div>
 
             <div className="flex items-center my-4 gap-3">

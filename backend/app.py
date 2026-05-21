@@ -9,6 +9,7 @@ from docx import Document as DocxDocument
 import re
 import numpy as np
 from typing import List, Optional
+from collections import Counter
 import os
 import time
 import io
@@ -536,11 +537,34 @@ async def compare_papers(data: CompareInput, current_user: dict = Depends(get_cu
     )
     if result:
         return {"comparison": result, "title1": data.title1, "title2": data.title2}
-    words1 = set(data.text1.lower().split())
-    words2 = set(data.text2.lower().split())
-    overlap = round(len(words1 & words2) / max(len(words1 | words2), 1) * 100, 1)
+
+    # Fallback comparison when AI is unavailable
+    words1 = re.findall(r"\b\w+\b", data.text1.lower())
+    words2 = re.findall(r"\b\w+\b", data.text2.lower())
+    set1 = set(words1)
+    set2 = set(words2)
+    overlap = round(len(set1 & set2) / max(len(set1 | set2), 1) * 100, 1)
+
+    stopwords = {
+        'the', 'and', 'for', 'that', 'with', 'this', 'from', 'paper', 'are', 'was', 'were', 'has', 'have',
+        'not', 'but', 'its', 'their', 'they', 'which', 'also', 'can', 'may', 'than', 'may', 'using', 'provide',
+        'based', 'study', 'system', 'systems'
+    }
+    counter1 = Counter(w for w in words1 if len(w) > 4 and w not in stopwords)
+    counter2 = Counter(w for w in words2 if len(w) > 4 and w not in stopwords)
+    top1 = ', '.join([w for w, _ in counter1.most_common(5)]) or 'N/A'
+    top2 = ', '.join([w for w, _ in counter2.most_common(5)]) or 'N/A'
+
     return {
-        "comparison": f"Basic Comparison:\n\n{data.title1}: {len(words1)} words\n{data.title2}: {len(words2)} words\n\nWord overlap: {overlap}%",
+        "comparison": (
+            f"Basic Comparison:\n\n"
+            f"{data.title1}: {len(words1)} words\n"
+            f"{data.title2}: {len(words2)} words\n\n"
+            f"Word overlap: {overlap}%\n\n"
+            f"Top terms in {data.title1}: {top1}\n"
+            f"Top terms in {data.title2}: {top2}\n\n"
+            f"This comparison is a fallback summary because the AI comparison backend was unavailable."
+        ),
         "title1": data.title1,
         "title2": data.title2
     }
